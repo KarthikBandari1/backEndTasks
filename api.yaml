@@ -1,0 +1,188 @@
+# Task 3
+
+swagger: "2.0"
+info:
+  title: Karthik's API Documentation
+  description: This is my assignment's API Documentation
+  version: 1.0
+  contact:
+    email: bandarikarthik159@gmail.com
+  servers:
+    -url: http://localhost:3002
+    description: This is my local Server
+    -url: http://example.com/
+    description: This is my hosted URL
+securityDefinitions:
+  BearerAuth:
+    type: apiKey
+    name: Authorization
+    in: header
+    description: "JWT Authorization header using the Bearer scheme"
+
+
+
+paths:
+  /register:
+    post:
+      summary: User Registration
+      description: You need to enter the username, email and password in the request body. These details are sent to the database and stored in the userDetails table. The password is hashed using bcrypt library, before storing in the table. On successful insertion into the table, you will receive response that new user is created 
+      produces:
+        - application/json
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: user details
+          schema:
+            type: object
+            required:
+              - username
+              - email
+              - password
+            properties:
+              username:
+                type: string
+              email:
+                type: string
+              password:
+                type: string
+      responses:
+        200:
+          description: User Registration Successful
+        400:
+          description: User already exists
+
+  /login:
+    post:
+      summary: User Login
+      description: You need to enter the username and password in the request body. These credentials are checked with the data in userDetails table with the help of bcrypt library. If the credentials you entered are correct then you will receive JWT token.
+      produces:
+        - application/json
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: user credentials
+          schema:
+            type: object
+            required:
+              - username
+              - password
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+      responses:
+        200:
+          description: User Logged In
+        400:
+          description: Invalid Credentials
+        
+
+  /logout:
+    get:
+      security:
+        - BearerAuth: []
+      summary: User Logout
+      description: The user's JWT token will be destroyed by inserting it into invalidated_tokens table in the database. On successful log out, the you receive response that user has been logged out.
+      responses:
+        200:   
+          description: User successfully logged out
+        401:
+          description: Invalid JWT token
+        500:
+          description: Internal Server Error
+  
+  /api/data:
+    get:
+      summary: Returns api data
+      description: The raw data is fetched from the "https://api.publicapis.org/entries" api and then filtered based on the query parameters of url. The query parameters are category, limit, offset, https, cors, auth. Among which including category and limit parameters is required mandatorily. On success, You will receive an array of objects. 
+      parameters:
+        - name: category
+          in: query
+          required: true
+          schema:
+            type : string
+        - name: limit
+          in: query
+          required: true
+          schema:
+            type : integer
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type : integer
+        - name: https
+          in: query
+          required: false
+          schema:
+            type : boolean
+        - name: cors
+          in: query
+          required: false
+          schema:
+            type : string
+        - name: auth
+          in: query
+          required: false
+          schema:
+            type : string
+      responses:
+        200:
+          description: Success
+          schema:
+            type: array
+            items: 
+              type: object
+              properties:
+                API:
+                  type: string
+                Description:
+                  type: string
+                Auth:
+                  type: string
+                HTTPS:
+                  type: boolean
+                Cors:
+                  type: string
+                Link:
+                  type: string
+                Category:
+                  type: string
+        500:
+          description: Internal Server Error
+          
+  
+
+  /user:
+    get:
+      security:
+        - BearerAuth: []
+      summary: Returns sensitive details of a user.
+      description: This is a protected API. The JWT token from the request header will be validated and only if the token is valid,then the username will be extracted from the payload object and using this username, the entire row of the user will be fetched from the userDetails table. It uses the middleware function for the authentication. The successful response of the API contains an object of username, email and hashedpassword.
+      responses:
+        200:   
+          description: Successful Response
+          schema: 
+            type: object
+            properties:
+              Name:
+                type: string
+              email:
+                type: string
+              password:
+                type: string
+        401:
+          description: Invalid JWT token
+        500:
+          description: Internal Server Error
+        
+              
+  
+  
+
+  
+
+

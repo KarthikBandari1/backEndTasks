@@ -1,0 +1,33 @@
+POST  http://localhost:3002/register
+Content-Type: application/json
+
+{
+    "username":"pran2ay",
+    "email": "pranay@gmail.com",
+    "password": "pranay12345"
+}
+  
+###
+POST  http://localhost:3002/login
+Content-Type: application/json
+
+{
+    "username":"pranay",
+    "password": "pranay12345"
+}
+
+###
+GET http://localhost:3002/logout
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJOYW1lIjoicHJhbmF5IiwiaWF0IjoxNzExNTQ0ODA5fQ.efTnntY1L27rXAkOV2FqbxJ6LOi95arsfryBHXZGkgg
+
+
+###
+GET http://localhost:3002/api/data?category=Animals&limit=5&https=true
+
+###
+
+GET http://localhost:3002/user
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJOYW1lIjoicHJhbmF5IiwiaWF0IjoxNzExNTQ0OTU3fQ.tyssQExdceweuvnl2oEy5SIlBDwhPQ6rfDJZHAPivoY
+
+
+
