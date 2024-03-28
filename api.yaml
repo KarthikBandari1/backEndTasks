@@ -10,7 +10,7 @@ info:
   servers:
     -url: http://localhost:3002
     description: This is my local Server
-    -url: https://karthik-backend-1-zwvx.onrender.com/    
+    -url: https://karthik-backend-1-zwvx.onrender.com
     description: This is my hosted URL
 securityDefinitions:
   BearerAuth:
