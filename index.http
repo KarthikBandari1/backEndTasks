@@ -2,9 +2,9 @@ POST  http://localhost:3002/register
 Content-Type: application/json
 
 {
-    "username":"pran2ay",
-    "email": "pranay@gmail.com",
-    "password": "pranay12345"
+    "username":"sweety",
+    "email": "sweety@gmail.com",
+    "password": "sweety"
 }
   
 ###
@@ -12,13 +12,13 @@ POST  http://localhost:3002/login
 Content-Type: application/json
 
 {
-    "username":"pranay",
-    "password": "pranay12345"
+    "username":"sweety",
+    "password": "sweety"
 }
 
 ###
 GET http://localhost:3002/logout
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJOYW1lIjoicHJhbmF5IiwiaWF0IjoxNzExNTQ0ODA5fQ.efTnntY1L27rXAkOV2FqbxJ6LOi95arsfryBHXZGkgg
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJOYW1lIjoiUmFqcGFsIiwiaWF0IjoxNzExNjA5MjU1fQ.EmNN7fFONoSov0vAwBaRLx-LidWvtP27HoTsuA6pY2U
 
 
 ###
@@ -27,7 +27,18 @@ GET http://localhost:3002/api/data?category=Animals&limit=5&https=true
 ###
 
 GET http://localhost:3002/user
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJOYW1lIjoicHJhbmF5IiwiaWF0IjoxNzExNTQ0OTU3fQ.tyssQExdceweuvnl2oEy5SIlBDwhPQ6rfDJZHAPivoY
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJOYW1lIjoiUmFqcGFsIiwiaWF0IjoxNzExNjA5MjU1fQ.EmNN7fFONoSov0vAwBaRLx-LidWvtP27HoTsuA6pY2U
+
+
+
+###
+PUT http://localhost:3002/changePassword
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJOYW1lIjoia2FyIiwiaWF0IjoxNzExNjA4ODAxfQ.-W4nfvjWsnPgLSVXJR0Rm_na8Dx0KqSLN8SYGtjjDQY
+Content-Type: application/json
+
+{
+    "newPassword": "kar12345"
+}
 
 
 

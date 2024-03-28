@@ -24,6 +24,7 @@
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.6",
     "swagger-ui-express": "5.0.0",
+    "web3": "4.7.0",
     "yamljs": "0.3.0"
   },
   "devDependencies": {

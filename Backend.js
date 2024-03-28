@@ -10,6 +10,7 @@ const axios = require('axios')
 const swaggerUI = require('swagger-ui-express')
 const YAML = require('yamljs')
 const swaggerJSDocs = YAML.load('./api.yaml')
+const Web3 = require('web3')
 
 const databasePath = path.join(__dirname, 'user.db')
 
@@ -39,49 +40,60 @@ initializeDbAndServer()
 
 // Task 1
 app.post('/register', async (request, response) => {
-  const {username, email, password} = request.body
-  const hashedPassword = await bcrypt.hash(password, 10)
-  const selectUserQuery = `SELECT * FROM userDetails WHERE Name = '${username}'`
-  const dbUser = await database.get(selectUserQuery)
-  if (dbUser === undefined) {
-    const createUserQuery = `
-      INSERT INTO
-        userDetails (Name, Email, password)
-      VALUES
-        (
-          '${username}',
-          '${email}',
-          '${hashedPassword}'
-        )`
+  try {
+    const {username, email, password} = request.body
 
-    const dbResponse = await database.run(createUserQuery)
+    // Checking if user already exists
+    const selectUserQuery = 'SELECT * FROM userDetails WHERE Name = ?'
+    const dbUser = await database.get(selectUserQuery, [username])
 
-    const newUserId = dbResponse.lastID
-    response.send(`Created new user with User ID ${newUserId}`)
-  } else {
-    response.status(400).send('User already exists')
+    if (dbUser) {
+      response.status(400).send('User already exists')
+    } else {
+      // Hashing password
+      const hashedPassword = await bcrypt.hash(password, 10)
+
+      // Inserting new user
+      const createUserQuery = `
+        INSERT INTO userDetails (Name, Email, password)
+        VALUES (?, ?, ?)`
+
+      const dbResponse = await database.run(createUserQuery, [
+        username,
+        email,
+        hashedPassword,
+      ])
+      const newUserId = dbResponse.lastID
+
+      response.send(`Created new user with User ID ${newUserId}`)
+    }
+  } catch (error) {
+    console.error('Error during registration:', error)
+    response.status(500).send('Internal Server Error')
   }
 })
 
 app.post('/login', async (request, response) => {
-  const {username, password} = request.body
-  const selectUserQuery = `SELECT * FROM userDetails WHERE Name = '${username}'`
-  const dbUser = await database.get(selectUserQuery)
-  if (dbUser === undefined) {
-    response.status(400)
-    response.send('Invalid User')
-  } else {
-    const isPasswordMatched = await bcrypt.compare(password, dbUser.password)
-    if (isPasswordMatched === true) {
-      const payload = {
-        Name: username,
-      }
-      const jwtToken = jwt.sign(payload, 'MY_SECRET_TOKEN')
-      response.send({jwtToken})
+  try {
+    const {username, password} = request.body
+    const selectUserQuery = 'SELECT * FROM userDetails WHERE Name = ?'
+    const dbUser = await database.get(selectUserQuery, [username])
+    if (!dbUser) {
+      response.status(400).send('Invalid User')
     } else {
-      response.status(400)
-      response.send('Invalid Password')
+      const isPasswordMatched = await bcrypt.compare(password, dbUser.password)
+
+      if (isPasswordMatched) {
+        const payload = {Name: username}
+        const jwtToken = jwt.sign(payload, 'MY_SECRET_TOKEN')
+        response.send({jwtToken})
+      } else {
+        response.status(400).send('Invalid Password')
+      }
     }
+  } catch (error) {
+    console.error('Error during login:', error)
+    response.status(500).send('Internal Server Error')
   }
 })
 
@@ -90,6 +102,7 @@ const is_not_valid_token = async jwt => {
   try {
     const token_query = 'SELECT * FROM invalidated_tokens WHERE token = ?'
     const tokenRow = await database.all(token_query, [jwt])
+    console.log(tokenRow.length > 0)
     if (tokenRow.length > 0) {
       return true
     } else {
@@ -104,24 +117,30 @@ const is_not_valid_token = async jwt => {
 //Middleware function to authenticate the user. by validating the jwt token.
 //Validating jwt token involves verifying the token or checking that it in invalidated_tokens table.
 const authenticateToken = async (request, response, next) => {
-  let jwtToken
-  const authHeader = request.headers['authorization']
-  if (authHeader !== undefined) {
-    jwtToken = authHeader.split(' ')[1]
-  }
-  if (jwtToken === undefined || (await is_not_valid_token(jwtToken))) {
-    response.status(401)
-    response.send('Invalid JWT Token, it has been destroyed or undefined')
-  } else {
-    jwt.verify(jwtToken, 'MY_SECRET_TOKEN', async (error, payload) => {
-      if (error) {
-        response.status(401)
-        response.send('Invalid JWT Token')
-      } else {
-        request.username = payload.Name
-        next()
-      }
-    })
+  try {
+    let jwtToken
+    const authHeader = request.headers['authorization']
+    if (authHeader !== undefined) {
+      jwtToken = authHeader.split(' ')[1]
+      console.log(jwtToken)
+    }
+    if (jwtToken === undefined || (await is_not_valid_token(jwtToken))) {
+      response.status(401)
+      response.send('Invalid JWT Token, it has been destroyed or undefined')
+    } else {
+      jwt.verify(jwtToken, 'MY_SECRET_TOKEN', async (error, payload) => {
+        if (error) {
+          response.status(401)
+          response.send('Invalid JWT Token')
+        } else {
+          request.username = payload.Name
+          next()
+        }
+      })
+    }
+  } catch (error) {
+    console.error('Error in authentication:', error)
+    response.status(500).send('Internal Server Error')
   }
 }
 
@@ -199,13 +218,35 @@ app.get('/api/data', async (req, res) => {
 
 //Task 4
 app.get('/user', authenticateToken, async (request, response) => {
-  console.log('hi')
-  const getUsersQuery = `
-   SELECT
-    *
-   FROM
-    userDetails
-   where Name='${request.username}';`
-  const userDetails = await database.get(getUsersQuery)
-  response.send(userDetails)
+  try {
+    const getUsersQuery = 'SELECT * FROM userDetails WHERE Name = ?'
+    const userDetails = await database.get(getUsersQuery, [request.username])
+
+    if (!userDetails) {
+      return response.status(404).send('User not found')
+    }
+
+    response.send(userDetails)
+  } catch (error) {
+    console.error('Error fetching user details:', error)
+    response.status(500).send('Error fetching user details')
+  }
+})
+
+app.put('/changePassword', authenticateToken, async (request, response) => {
+  try {
+    const {newPassword} = request.body
+    if (!newPassword) {
+      return response.status(400).send('New password is required')
+    }
+
+    const newHashedPassword = await bcrypt.hash(newPassword, 10)
+    const putQuery = 'UPDATE userDetails SET password = ? WHERE Name = ?'
+    await database.run(putQuery, [newHashedPassword, request.username])
+
+    response.send('Password Updated')
+  } catch (error) {
+    console.error('Error updating password:', error)
+    response.status(500).send('Error updating password')
+  }
 })
