@@ -10,11 +10,7 @@ info:
   servers:
     -url: http://localhost:3002
     description: This is my local Server
-<<<<<<< HEAD
     -url: https://karthik-backend-1-zwvx.onrender.com 
-=======
-    -url: https://karthik-backend-1-zwvx.onrender.com
->>>>>>> edbc4f33423529339c53616c352d0fd2991cf268
     description: This is my hosted URL
 securityDefinitions:
   BearerAuth:
@@ -188,7 +184,7 @@ paths:
       security:
         - BearerAuth: []
       summary: Changing the password
-      description: This is a protected API. The JWT token from the request header will be validated and only if the token is valid,then the username will be extracted from the payload object and using this username, the entire row of the user will be fetched from the userDetails table. It uses the middleware function for the authentication. The successful response of the API contains an object of username, email and hashedpassword.
+      description: This is a protected API. The JWT token from the request header will be validated and only if the token is valid,then the new password will be replaced with the old password of the user. It uses the middleware function for the authentication. 
       parameters:
         - in: body
           name: New Password
